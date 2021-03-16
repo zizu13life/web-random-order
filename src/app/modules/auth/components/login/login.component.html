@@ -1,0 +1,9 @@
+<section>
+  <form novalidate action='javascript:void(0);' action='javascript:void(0);'>
+    <label class="title">
+      Welcome to Random Order
+    </label>
+    <button id="googleBtn" [disabled]="loading" type='submit'>Login</button>
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+  </form>
+</section>

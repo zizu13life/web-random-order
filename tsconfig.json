@@ -15,7 +15,17 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "typeRoots": [
+      "node",
+      "src/customTypings",
+      "node_modules/@types"
+    ],
+    "types": [
+      "node",
+      "gapi",
+      "gapi.auth2",
+    ],
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false
