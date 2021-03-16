@@ -5,7 +5,7 @@ import { LoginComponent } from './modules/auth/components/login/login.component'
 import { AuthService } from './modules/auth/components/servises/auth.service';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', redirectTo: '/order', pathMatch: 'full' },
   { path: 'order', component: OrderComponent, canActivate: [AuthService] },
   { path: 'login', component: LoginComponent },
   { path: '**', redirectTo: '/login', pathMatch: 'full' },
