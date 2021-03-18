@@ -1,8 +1,8 @@
-import { Router } from '@angular/router';
 import { Component, NgZone, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
+
 import { AuthService } from '../servises/auth.service';
-import { take, finalize } from 'rxjs/operators';
-import { UserService } from 'src/app/modules/user/service/user.service';
 
 @Component({
   selector: 'login',
@@ -13,7 +13,7 @@ export class LoginComponent implements OnInit {
   loading = false;
   public auth2: gapi.auth2.GoogleAuth;
 
-  constructor(private auth: AuthService, private userSercice: UserService,
+  constructor(private auth: AuthService,
     private router: Router, private ngZone: NgZone) {
     window['onSignIn'] = this.afterLogin;
   }

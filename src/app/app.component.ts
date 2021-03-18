@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { WebsoketEventService } from './modules/websoket/event/services/websoket-event.service';
 
 @Component({
   selector: 'app-root',
@@ -7,7 +6,7 @@ import { WebsoketEventService } from './modules/websoket/event/services/websoket
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  constructor(private websoketEventService: WebsoketEventService){
+  constructor(){
     
   }
 }

@@ -1,29 +1,72 @@
-<section>
-  <form>
-    <label>
-      Welcome to Random Order
-    </label>
-    <button id="googleBtn" [disabled]="loading" type='submit'>Login</button>
-    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
-  </form>
+<section id="active-users">
+  <label>Active users:</label>
+  <div class="list-wrapper">
+    <div *ngFor="let user of userService.activeUsers | async; trackBy: trackByFn" class="user">
+      <div class="avatar" [style.backgroundImage]="'url(' + user.avatar + ')'"></div>
+      <div class="name">{{user.firstName}} {{user.lastName}}</div>
+    </div>
+  </div>
 </section>
 
-<section>
-  <form>
-    <label>
-      Welcome to Random Order
-    </label>
-    <button id="googleBtn" [disabled]="loading" type='submit'>Login</button>
-    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+<section id="unlinked-orders">
+  <label>Non assigned orders:</label>
+  <form *ngIf="authService.currentUser.isAdmin" #f="ngForm" class="d-flex">
+    <mat-form-field id="priority" appearance="outline">
+      <mat-label>Priority</mat-label>
+      <input #priority="ngModel" name="priority" matInput min="1" max="10" required
+             type="number" placeholder="Enter Priority 1 - 10" autocomplete="off"
+             [(ngModel)]="order.priority">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Order:</mat-label>
+      <input #order_id="ngModel" name="order_id" matInput required
+             type="number" placeholder="Enter order ID" autocomplete="off"
+             [(ngModel)]="order.name">
+      <mat-icon *ngIf="order.name" color="primary" matSuffix (click)="addNewOrder(f)"
+                style="cursor: pointer; font-size: 24px;">done</mat-icon>
+    </mat-form-field>
   </form>
+  <mat-progress-bar *ngIf="orderLoading" mode="indeterminate"></mat-progress-bar>
+  <div class="list-wrapper" infiniteScroll
+       [infiniteScrollDistance]="2"
+       [infiniteScrollUpDistance]="1.5"
+       [infiniteScrollThrottle]="50"
+       (scrolled)="loadUnlinkedOrders()">
+    <div *ngFor="let order of unlinkedOrders; trackBy: trackByFn" class="user order">
+      <div *ngIf="authService.currentUser.isAdmin" class="avatar action"
+           [style.borderColor]="priorityPalete[order.priority]" (click)="remove(order)">
+        <span>{{order.priority}}</span>
+        <mat-icon color="warn">delete</mat-icon>
+      </div>
+      <div *ngIf="!authService.currentUser.isAdmin" class="avatar" [style.borderColor]="priorityPalete[order.priority]">
+        <span>{{order.priority}}</span>
+      </div>
+      <div class="name">{{order.name}}</div>
+      <div class="date">{{order.createdAt | date: "medium"}}</div>
+    </div>
+  </div>
+  <button mat-raised-button color="primary" (click)="linkRandomOrderToMe()">Want new order !!!</button>
 </section>
 
-<section>
-  <form>
-    <label>
-      Welcome to Random Order
-    </label>
-    <button id="googleBtn" [disabled]="loading" type='submit'>Login</button>
-    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+<section id="linked-orders">
+  <label>Assigned orders:</label>
+  <form #f="ngForm" class="d-flex">
+
   </form>
+  <mat-progress-bar *ngIf="orderLoading" mode="indeterminate"></mat-progress-bar>
+  <div class="list-wrapper" infiniteScroll
+       [infiniteScrollDistance]="2"
+       [infiniteScrollUpDistance]="1.5"
+       [infiniteScrollThrottle]="50"
+       (scrolledUp)="loadMoreLinkedOrders()">
+    <div *ngFor="let order of linkedOrders; trackBy: trackByFn" class="user order">
+      <div class="avatar" [style.backgroundImage]="'url(' + order.user.avatar + ')'">
+      </div>
+      <div class="col">
+        <div class="name">{{order.name}}</div>
+        <div class="sub-name">{{order.user.firstName}} {{order.user.lastName}}</div>
+      </div>
+      <div class="date">{{order.linkedAt | date: "medium"}}</div>
+    </div>
+  </div>
 </section>

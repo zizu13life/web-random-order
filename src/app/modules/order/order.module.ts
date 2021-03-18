@@ -8,17 +8,23 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
+    MatInputModule,
     MatProgressBarModule,
     MatTableModule,
     MatButtonModule,
     MatFormFieldModule,
     MatPaginatorModule,
     MatSortModule,
+    MatIconModule,
+    InfiniteScrollModule,
   ],
   declarations: [
     OrderComponent,
