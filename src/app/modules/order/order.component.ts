@@ -44,11 +44,9 @@ export class OrderComponent implements OnInit, AfterViewInit {
 
 
   watchOrderChange() {
-    merge(
-      this.websoketEventService.onEvent
-        .pipe(filter(e => e.type == WebsocketEventType.USER_UPDATE_ORDER_LIST)),
-      this.orderService.onChange
-    ).subscribe(this.reloadUnlinkedOrders.bind(this));
+    this.websoketEventService.onEvent
+      .pipe(filter(e => e.type == WebsocketEventType.USER_UPDATE_ORDER_LIST))
+      .subscribe(this.reloadUnlinkedOrders.bind(this));
 
     (this.websoketEventService.onEvent as EventEmitter<WebsocketEvent<Order>>).pipe(
       filter(e => e.type == WebsocketEventType.USER_TAKE_ORDER),
@@ -84,14 +82,14 @@ export class OrderComponent implements OnInit, AfterViewInit {
   remove(order: Order) {
     this.orderService.remove(order.id)
       .pipe(this.orderLoadingPipe())
-      .subscribe(()=>{
+      .subscribe(() => {
         order.rejectedAt = new Date();
         order.rejectedById = this.authService.currentUser.id;
       });
   }
 
-  askForReject(order: Order){
-    if(confirm("Are you sure?")){
+  askForReject(order: Order) {
+    if (confirm("Are you sure?")) {
       this.remove(order);
     }
   }
@@ -99,9 +97,7 @@ export class OrderComponent implements OnInit, AfterViewInit {
   linkRandomOrderToMe() {
     this.orderService.linkRandomOrderToMe()
       .pipe(this.orderLoadingPipe())
-      .subscribe(() => {
-        this.reloadLinkedOrders();
-      });
+      .subscribe();
   }
 
   /**
@@ -169,6 +165,7 @@ export class OrderComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.scrollToBottom();
   }
+
   scrollDownLinkedListOnNextRepaint = false;
   ngAfterViewChecked() {
     if (this.scrollDownLinkedListOnNextRepaint) {
