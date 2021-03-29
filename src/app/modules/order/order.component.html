@@ -73,9 +73,17 @@
       <div *ngIf="linkedOrders[index - 1]?.linkedAt.getDay() != order.linkedAt.getDay()" class="date-divider">
         {{order.linkedAt | date: "fullDate"}}
       </div>
-      <div class="user order d-flex flex-column ">
+      <div class="user order d-flex flex-column " [ngClass]="{'rejected': order.rejectedAt}">
         <div class="d-flex w-100">
-          <div class="avatar" [style.backgroundImage]="'url(' + order.user.avatar + ')'">
+          <div *ngIf="!authService.currentUser.isAdmin" class="avatar"
+               [style.borderColor]="priorityPalete[order.priority - 1]"
+               [style.backgroundImage]="'url(' + order.user.avatar + ')'">
+          </div>
+          <div *ngIf="authService.currentUser.isAdmin" class="avatar action"
+               [style.borderColor]="priorityPalete[order.priority - 1]"
+               [style.backgroundImage]="'url(' + order.user.avatar + ')'"
+               (click)="askForReject(order)">
+            <mat-icon color="warn">delete</mat-icon>
           </div>
           <div class="col">
             <div class="name" [style.color]="priorityPalete[order.priority -1]">{{order.name}}</div>

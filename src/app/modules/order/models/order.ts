@@ -10,4 +10,7 @@ export interface Order {
     linkedAt?: Date;
     doneAt?: Date;
     createdAt?: Date;
+    rejectedAt?: Date;
+    rejectedBy?: User;
+    rejectedById?: number;
 }

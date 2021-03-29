@@ -84,7 +84,16 @@ export class OrderComponent implements OnInit, AfterViewInit {
   remove(order: Order) {
     this.orderService.remove(order.id)
       .pipe(this.orderLoadingPipe())
-      .subscribe();
+      .subscribe(()=>{
+        order.rejectedAt = new Date();
+        order.rejectedById = this.authService.currentUser.id;
+      });
+  }
+
+  askForReject(order: Order){
+    if(confirm("Are you sure?")){
+      this.remove(order);
+    }
   }
 
   linkRandomOrderToMe() {

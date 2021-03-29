@@ -104,6 +104,7 @@
 }
 
 .order {
+    position: relative;
     .avatar.action {
         position: relative;
 
@@ -140,6 +141,20 @@
         font-size: 12px;
         margin-left: auto;
         max-width: 100px;
+    }
+
+    &.rejected{
+        &::after{
+            content: "";
+            position: absolute;
+            top: 20px;
+            bottom: 0;
+            height: 5px;
+            width: 100%;
+            background-color: #ff000073;
+            box-shadow: -2px 0px 20px 3px #f50000;
+            border-radius: 5px;
+        }
     }
 }
 
