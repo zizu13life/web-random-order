@@ -1,18 +1,24 @@
+import { ToastrService } from 'ngx-toastr';
 import { Order } from './models/order';
-import { Component, OnInit } from '@angular/core';
-import { tap, finalize } from 'rxjs/operators';
+import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, ViewChild } from '@angular/core';
+import { tap, finalize, filter } from 'rxjs/operators';
 import { User } from '../user/models/user';
 import { UserService } from '../user/service/user.service';
 import { OrderService } from './services/order.service';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../auth/components/servises/auth.service';
+import { WebsoketEventService } from '../websoket/event/services/websoket-event.service';
+import { WebsocketEvent, WebsocketEventType } from '../websoket/event/models/models';
+import { merge } from 'rxjs';
+import { NotyfToast } from './components/order-toastr/order-toastr.component';
 
 @Component({
   selector: 'app-order',
   templateUrl: './order.component.html',
   styleUrls: ['./order.component.scss']
 })
-export class OrderComponent implements OnInit {
+export class OrderComponent implements OnInit, AfterViewInit {
+  @ViewChild('scrollMe') private myScrollContainer: ElementRef;
   orderLoading = true;
 
   // order
@@ -20,22 +26,39 @@ export class OrderComponent implements OnInit {
 
   unlinkedOrders: Order[] = [];
   unlinkedOrderPage = 0;
-  priorityPalete = ["#04e772", "#14b85b", "#188c42", "#1b5f26", "#a6b760", "#e3cc1e", "#d6aa30", "#c98741", "#c98741", "#8c0f13", "#c64c50"]
+  priorityPalete = ["#c64c50", "#e3cc1e", "#04e772"]
 
   linkedOrders: Order[] = [];
-  linkedOrderDate = new Date();
-
+  linkedOrderPaginationDate = new Date();
+  linkedOrderFilterDate = null;
 
   constructor(public userService: UserService,
     private orderService: OrderService,
     public authService: AuthService,
+    private toastr: ToastrService,
+    private websoketEventService: WebsoketEventService,
   ) {
     this.prepareDefaulOrder();
     this.watchOrderChange();
   }
 
+
   watchOrderChange() {
-    this.orderService.onChange.subscribe(this.reloadUnlinkedOrders.bind(this));
+    merge(
+      this.websoketEventService.onEvent
+        .pipe(filter(e => e.type == WebsocketEventType.USER_UPDATE_ORDER_LIST)),
+      this.orderService.onChange
+    ).subscribe(this.reloadUnlinkedOrders.bind(this));
+
+    (this.websoketEventService.onEvent as EventEmitter<WebsocketEvent<Order>>).pipe(
+      filter(e => e.type == WebsocketEventType.USER_TAKE_ORDER),
+      tap(event => {
+        this.toastr.info(event.data as any, null, { toastComponent: NotyfToast, timeOut: 60000 });
+      }))
+      .subscribe(() => {
+        this.reloadLinkedOrders();
+        this.reloadUnlinkedOrders();
+      });
   }
 
   orderLoadingPipe<T>() {
@@ -49,10 +72,11 @@ export class OrderComponent implements OnInit {
         .pipe(this.orderLoadingPipe())
         .subscribe(data => {
           this.prepareDefaulOrder();
-          (document.activeElement as HTMLElement).blur();
+
           setTimeout(() => {
             f.form.markAsUntouched();
-          })
+            f.form.markAsPristine();
+          }, 1000)
         });
     }
   }
@@ -82,17 +106,17 @@ export class OrderComponent implements OnInit {
   }
 
   loadMoreUnlinkedOrders() {
-    if(this.unlinkedOrderPage){
+    if (this.unlinkedOrderPage) {
       this.unlinkedOrderPage++;
       this.loadUnlinkedOrders();
-    }    
+    }
   }
 
   loadUnlinkedOrders() {
     this.orderService.getUnlinked(this.unlinkedOrderPage)
       .pipe(this.orderLoadingPipe())
       .subscribe(data => {
-        if(data.length == 0) this.unlinkedOrderPage = null;
+        if (data.length == 0) this.unlinkedOrderPage = null;
         this.unlinkedOrders.push(...data);
       });
   }
@@ -102,35 +126,59 @@ export class OrderComponent implements OnInit {
    */
 
   reloadLinkedOrders() {
-    this.linkedOrderDate = new Date();
+    this.linkedOrderPaginationDate = new Date();
     this.linkedOrders = [];
-    this.loadLinkedOrders();
+    this.loadLinkedOrders(true);
   }
 
   loadMoreLinkedOrders() {
-    if (this.linkedOrderDate) {
-      this.linkedOrderDate = this.linkedOrders?.[0]?.linkedAt;
+    if (this.linkedOrderPaginationDate) {
+      this.linkedOrderPaginationDate = this.linkedOrders?.[0]?.linkedAt;
       this.loadLinkedOrders();
     }
   }
 
-  loadLinkedOrders() {
-    this.orderService.getLinked(this.linkedOrderDate)
+  loadLinkedOrders(scrollDown: boolean = false) {
+    this.orderService.getLinked(this.linkedOrderPaginationDate, this.linkedOrderFilterDate)
       .pipe(this.orderLoadingPipe())
       .subscribe(data => {
-        if (data.length == 0) this.linkedOrderDate = null;
-        this.linkedOrders.push(...data.reverse());
+        if (data.length == 0) this.linkedOrderPaginationDate = null;
+        this.linkedOrders.unshift(...data.reverse());
+        this.scrollDownLinkedListOnNextRepaint = scrollDown;
       });
-
   }
 
   private prepareDefaulOrder() {
-    this.order = { description: null, name: null, priority: 1 };
+    this.order = { description: null, name: null, priority: 3 };
   }
 
   ngOnInit() {
     this.loadUnlinkedOrders();
-    this.loadLinkedOrders();
+    this.reloadLinkedOrders();
+  }
+
+  ngAfterViewInit(): void {
+    this.scrollToBottom();
+  }
+  scrollDownLinkedListOnNextRepaint = false;
+  ngAfterViewChecked() {
+    if (this.scrollDownLinkedListOnNextRepaint) {
+      this.scrollToBottom();
+      setTimeout(() => {
+        this.scrollDownLinkedListOnNextRepaint = false;
+      }, 0);
+    }
+  }
+
+  scrollToBottom(): void {
+    try {
+      this.myScrollContainer.nativeElement.scrollTop = this.myScrollContainer.nativeElement.scrollHeight;
+    } catch (err) { }
+  }
+
+  clearlinkedOrderFilterDate() {
+    this.linkedOrderFilterDate = null;
+    this.reloadLinkedOrders();
   }
 
   trackByFn(index, item) {

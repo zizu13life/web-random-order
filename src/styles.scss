@@ -146,14 +146,6 @@ section {
 
 * {
     box-sizing: border-box;
-
-    &::before {
-        content: '';
-    }
-
-    &::after {
-        content: '';
-    }
 }
 
 

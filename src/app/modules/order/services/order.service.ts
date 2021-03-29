@@ -21,8 +21,8 @@ export class OrderService {
       .pipe(map(orders => orders.map(order => this.converter(order))));
   }
 
-  getLinked(date: Date = new Date()) {
-    return this.http.get<Order[]>(BASE_URL + '/linked', { params: { date: date?.toString() } })
+  getLinked(date: Date = new Date(), flterDate: Date) {
+    return this.http.get<Order[]>(BASE_URL + '/linked', { params: { date: date?.toString(), flterDate: flterDate?.toString() || '' } })
       .pipe(map(orders => orders.map(order => this.converter(order))));
   }
 
@@ -46,7 +46,7 @@ export class OrderService {
   }
 
   converter(order: Order) {
-
+    order.linkedAt = order.linkedAt ? new Date(order.linkedAt) : null;
     return order;
   }
 }

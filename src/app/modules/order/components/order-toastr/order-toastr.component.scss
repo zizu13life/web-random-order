@@ -1,0 +1,42 @@
+:host {
+    display: flex;
+}
+
+.oder,
+.user {
+    display: flex;
+    align-items: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 0 3px #000000c4;
+
+    .avatar {
+        background-repeat: no-repeat;
+        background-origin: border-box;
+        background-position: center;
+        background-size: cover;
+        min-width: 45px;
+        min-height: 45px;
+        border-radius: 50%;
+        margin-right: 15px;
+        border: 2px solid white;
+        box-shadow: -2px 2px 5px #1d1d1db0;
+        text-align: center;
+        line-height: 45px;
+        box-sizing: content-box;
+    }
+
+    .name {}
+
+    .date {
+        font-size: 10px;
+        position: absolute;
+        bottom: 0;
+        right: 10px;
+    }
+
+    .sub-name {
+        font-size: 12px;
+    }
+}

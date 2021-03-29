@@ -11,62 +11,83 @@
 <section id="unlinked-orders">
   <label>Non assigned orders:</label>
   <form *ngIf="authService.currentUser.isAdmin" #f="ngForm" class="d-flex">
-    <mat-form-field id="priority" appearance="outline">
+    <mat-form-field id="priority" appearance="fill">
       <mat-label>Priority</mat-label>
-      <input #priority="ngModel" name="priority" matInput min="1" max="10" required
+      <input #priority="ngModel" name="priority" matInput min="1" max="3" required
              type="number" placeholder="Enter Priority 1 - 10" autocomplete="off"
              [(ngModel)]="order.priority">
     </mat-form-field>
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="fill">
       <mat-label>Order:</mat-label>
       <input #order_id="ngModel" name="order_id" matInput required
-             type="number" placeholder="Enter order ID" autocomplete="off"
+             placeholder="Enter order IDs" autocomplete="off"
              [(ngModel)]="order.name">
-      <mat-icon *ngIf="order.name" color="primary" matSuffix (click)="addNewOrder(f)"
-                style="cursor: pointer; font-size: 24px;">done</mat-icon>
     </mat-form-field>
   </form>
   <mat-progress-bar *ngIf="orderLoading" mode="indeterminate"></mat-progress-bar>
   <div class="list-wrapper" infiniteScroll
        [infiniteScrollDistance]="2"
-       [infiniteScrollUpDistance]="1.5"
-       [infiniteScrollThrottle]="50"
+       [infiniteScrollUpDistance]="10"
+       [infiniteScrollThrottle]="100"
        (scrolled)="loadUnlinkedOrders()">
     <div *ngFor="let order of unlinkedOrders; trackBy: trackByFn" class="user order">
       <div *ngIf="authService.currentUser.isAdmin" class="avatar action"
-           [style.borderColor]="priorityPalete[order.priority]" (click)="remove(order)">
+           [style.borderColor]="priorityPalete[order.priority - 1]" (click)="remove(order)">
         <span>{{order.priority}}</span>
         <mat-icon color="warn">delete</mat-icon>
       </div>
-      <div *ngIf="!authService.currentUser.isAdmin" class="avatar" [style.borderColor]="priorityPalete[order.priority]">
+      <div *ngIf="!authService.currentUser.isAdmin" class="avatar"
+           [style.borderColor]="priorityPalete[order.priority - 1]">
         <span>{{order.priority}}</span>
       </div>
       <div class="name">{{order.name}}</div>
       <div class="date">{{order.createdAt | date: "medium"}}</div>
     </div>
   </div>
-  <button mat-raised-button color="primary" (click)="linkRandomOrderToMe()">Want new order !!!</button>
+  <button *ngIf="!order.name" mat-raised-button color="primary" (click)="linkRandomOrderToMe()">Want new order
+    !!!</button>
+  <button *ngIf="order.name" mat-raised-button color="primary" (click)="addNewOrder(f)">Add orders !!!</button>
 </section>
 
 <section id="linked-orders">
   <label>Assigned orders:</label>
   <form #f="ngForm" class="d-flex">
-
+    <mat-form-field appearance="fill">
+      <mat-label>Filter date</mat-label>
+      <input name="linkedOrderFilterDate" matInput [matDatepicker]="startDatePicker"
+             [(ngModel)]="linkedOrderFilterDate" (ngModelChange)="reloadLinkedOrders()">
+      <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker-toggle *ngIf="linkedOrderFilterDate" matSuffix (click)="clearlinkedOrderFilterDate()">
+        <mat-icon matDatepickerToggleIcon>clear</mat-icon>
+      </mat-datepicker-toggle>
+      <mat-datepicker #startDatePicker></mat-datepicker>
+    </mat-form-field>
   </form>
   <mat-progress-bar *ngIf="orderLoading" mode="indeterminate"></mat-progress-bar>
-  <div class="list-wrapper" infiniteScroll
-       [infiniteScrollDistance]="2"
-       [infiniteScrollUpDistance]="1.5"
-       [infiniteScrollThrottle]="50"
+  <div #scrollMe class="list-wrapper" infiniteScroll [scrollWindow]="false"
+       [infiniteScrollUpDistance]="5"
+       [infiniteScrollThrottle]="5"
+       [infiniteScrollDisabled]="scrollDownLinkedListOnNextRepaint || linkedOrders.length == 0 || orderLoading"
        (scrolledUp)="loadMoreLinkedOrders()">
-    <div *ngFor="let order of linkedOrders; trackBy: trackByFn" class="user order">
-      <div class="avatar" [style.backgroundImage]="'url(' + order.user.avatar + ')'">
+    <ng-container *ngFor="let order of linkedOrders; trackBy: trackByFn; let index = index">
+      <div *ngIf="linkedOrders[index - 1]?.linkedAt.getDay() != order.linkedAt.getDay()" class="date-divider">
+        {{order.linkedAt | date: "fullDate"}}
       </div>
-      <div class="col">
-        <div class="name">{{order.name}}</div>
-        <div class="sub-name">{{order.user.firstName}} {{order.user.lastName}}</div>
+      <div class="user order d-flex flex-column ">
+        <div class="d-flex w-100">
+          <div class="avatar" [style.backgroundImage]="'url(' + order.user.avatar + ')'">
+          </div>
+          <div class="col">
+            <div class="name" [style.color]="priorityPalete[order.priority -1]">{{order.name}}</div>
+            <div class="sub-name">{{order.user.firstName}} {{order.user.lastName}}</div>
+          </div>
+          <div class="date">{{order.linkedAt | date: "medium"}}</div>
+        </div>
       </div>
-      <div class="date">{{order.linkedAt | date: "medium"}}</div>
-    </div>
+    </ng-container>
+
   </div>
+  <button class="scroll-down-btn" mat-mini-fab color="primary" (click)="scrollToBottom()">
+    <mat-icon>arrow_circle_down</mat-icon>
+  </button>
 </section>
